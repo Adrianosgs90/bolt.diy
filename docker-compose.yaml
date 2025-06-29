@@ -1,17 +1,26 @@
+# Arquivo de configuração do Docker Compose para o projeto Bolt AI
+# Contém as definições para os ambientes de produção, desenvolvimento e pré-construído.
+
 services:
+  # ------------------------------------------------------------------
+  # SERVIÇO PARA PRODUÇÃO (O que você deve usar no Coolify)
+  # ------------------------------------------------------------------
+  # Este serviço constrói a imagem Docker otimizada para produção
+  # e inicia a aplicação.
+  # No painel do Coolify, você deve especificar 'app-prod' como o serviço a ser implantado.
   app-prod:
     image: bolt-ai:production
     build:
       context: .
       dockerfile: Dockerfile
-      target: bolt-ai-production
+      target: bolt-ai-production # Usa o estágio de 'production' do seu Dockerfile
     ports:
       - '5173:5173'
     env_file: '.env.local'
     environment:
       - NODE_ENV=production
       - COMPOSE_PROFILES=production
-      # No strictly needed but serving as hints for Coolify
+      # As variáveis abaixo servem como dicas para o Coolify e para a aplicação
       - PORT=5173
       - GROQ_API_KEY=${GROQ_API_KEY}
       - HuggingFace_API_KEY=${HuggingFace_API_KEY}
@@ -29,14 +38,19 @@ services:
       - RUNNING_IN_DOCKER=true
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    command: pnpm run dockerstart
+    command: pnpm run dockerstart # Comando para iniciar a aplicação em produção
     profiles:
       - production
 
+  # ------------------------------------------------------------------
+  # SERVIÇO PARA DESENVOLVIMENTO LOCAL
+  # ------------------------------------------------------------------
+  # Este serviço é otimizado para o desenvolvimento na sua máquina.
+  # Ele monta o código-fonte localmente para permitir o hot-reload (atualização automática).
   app-dev:
     image: bolt-ai:development
     build:
-      target: bolt-ai-development
+      target: bolt-ai-development # Usa o estágio de 'development' do seu Dockerfile
     env_file: '.env.local'
     environment:
       - NODE_ENV=development
@@ -70,9 +84,13 @@ services:
       - /app/node_modules
     ports:
       - '5173:5173'
-    command: pnpm run dev --host 0.0.0.0
+    command: pnpm run dev --host 0.0.0.0 # Comando para rodar em modo de desenvolvimento
     profiles: ['development', 'default']
 
+  # ------------------------------------------------------------------
+  # SERVIÇO PARA AMBIENTE PRÉ-CONSTRUÍDO (PREBUILT)
+  # ------------------------------------------------------------------
+  # Este serviço usa uma imagem pública já pronta.
   app-prebuild:
     image: ghcr.io/stackblitz-labs/bolt.diy:latest
     ports:
@@ -80,7 +98,6 @@ services:
     environment:
       - NODE_ENV=production
       - COMPOSE_PROFILES=production
-      # No strictly needed but serving as hints for Coolify
       - PORT=5173
       - OLLAMA_API_BASE_URL=http://127.0.0.1:11434
       - DEFAULT_NUM_CTX=${DEFAULT_NUM_CTX:-32768}
