@@ -1,26 +1,21 @@
-# Arquivo de configuração do Docker Compose para o projeto Bolt AI
-# Contém as definições para os ambientes de produção, desenvolvimento e pré-construído.
+# Arquivo docker-compose.yml ATUALIZADO PARA FORÇAR O COOLIFY
 
 services:
   # ------------------------------------------------------------------
-  # SERVIÇO PARA PRODUÇÃO (O que você deve usar no Coolify)
+  # SERVIÇO PARA PRODUÇÃO (AGORA SEM PERFIL, PARA SER O PADRÃO)
   # ------------------------------------------------------------------
-  # Este serviço constrói a imagem Docker otimizada para produção
-  # e inicia a aplicação.
-  # No painel do Coolify, você deve especificar 'app-prod' como o serviço a ser implantado.
   app-prod:
     image: bolt-ai:production
     build:
       context: .
       dockerfile: Dockerfile
-      target: bolt-ai-production # Usa o estágio de 'production' do seu Dockerfile
+      target: bolt-ai-production
     ports:
       - '5173:5173'
     env_file: '.env.local'
     environment:
       - NODE_ENV=production
       - COMPOSE_PROFILES=production
-      # As variáveis abaixo servem como dicas para o Coolify e para a aplicação
       - PORT=5173
       - GROQ_API_KEY=${GROQ_API_KEY}
       - HuggingFace_API_KEY=${HuggingFace_API_KEY}
@@ -38,19 +33,16 @@ services:
       - RUNNING_IN_DOCKER=true
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    command: pnpm run dockerstart # Comando para iniciar a aplicação em produção
-    profiles:
-      - production
+    command: pnpm run dockerstart
+    # A LINHA 'profiles:' FOI REMOVIDA DAQUI
 
   # ------------------------------------------------------------------
-  # SERVIÇO PARA DESENVOLVIMENTO LOCAL
+  # SERVIÇO PARA DESENVOLVIMENTO LOCAL (CONTINUA COM PERFIL PARA FICAR OCULTO)
   # ------------------------------------------------------------------
-  # Este serviço é otimizado para o desenvolvimento na sua máquina.
-  # Ele monta o código-fonte localmente para permitir o hot-reload (atualização automática).
   app-dev:
     image: bolt-ai:development
     build:
-      target: bolt-ai-development # Usa o estágio de 'development' do seu Dockerfile
+      target: bolt-ai-development
     env_file: '.env.local'
     environment:
       - NODE_ENV=development
@@ -84,13 +76,12 @@ services:
       - /app/node_modules
     ports:
       - '5173:5173'
-    command: pnpm run dev --host 0.0.0.0 # Comando para rodar em modo de desenvolvimento
-    profiles: ['development', 'default']
+    command: pnpm run dev --host 0.0.0.0
+    profiles: ['development', 'default'] # ESSA LINHA PERMANECE AQUI
 
   # ------------------------------------------------------------------
-  # SERVIÇO PARA AMBIENTE PRÉ-CONSTRUÍDO (PREBUILT)
+  # SERVIÇO PRÉ-CONSTRUÍDO (PODE DEIXAR COMO ESTÁ)
   # ------------------------------------------------------------------
-  # Este serviço usa uma imagem pública já pronta.
   app-prebuild:
     image: ghcr.io/stackblitz-labs/bolt.diy:latest
     ports:
